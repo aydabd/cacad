@@ -1,4 +1,4 @@
-import type { Bathroom, BathroomComponent } from "../types/bathroom.js";
+import type { Bathroom } from "../types/bathroom.js";
 
 // ── glTF 2.0 minimal type definitions ────────────────────────────────────────
 
@@ -142,18 +142,70 @@ function buildBoxGeometry(
 
     // 8 unique vertices of an axis-aligned box
     const positions: number[] = [
-        0, 0, 0, w, 0, 0, w, h, 0, 0, h, 0, // front face (z=0)
-        0, 0, d, w, 0, d, w, h, d, 0, h, d, // back face (z=d)
+        0,
+        0,
+        0,
+        w,
+        0,
+        0,
+        w,
+        h,
+        0,
+        0,
+        h,
+        0, // front face (z=0)
+        0,
+        0,
+        d,
+        w,
+        0,
+        d,
+        w,
+        h,
+        d,
+        0,
+        h,
+        d, // back face (z=d)
     ];
 
     // 6 faces × 2 triangles × 3 indices
     const indexData: number[] = [
-        0, 1, 2, 0, 2, 3, // front
-        5, 4, 7, 5, 7, 6, // back
-        4, 0, 3, 4, 3, 7, // left
-        1, 5, 6, 1, 6, 2, // right
-        3, 2, 6, 3, 6, 7, // top
-        4, 5, 1, 4, 1, 0, // bottom
+        0,
+        1,
+        2,
+        0,
+        2,
+        3, // front
+        5,
+        4,
+        7,
+        5,
+        7,
+        6, // back
+        4,
+        0,
+        3,
+        4,
+        3,
+        7, // left
+        1,
+        5,
+        6,
+        1,
+        6,
+        2, // right
+        3,
+        2,
+        6,
+        3,
+        6,
+        7, // top
+        4,
+        5,
+        1,
+        4,
+        1,
+        0, // bottom
     ];
 
     return {
@@ -190,10 +242,7 @@ interface ComponentDef {
     materialIndex: number;
 }
 
-const COMPONENT_DEFAULT_SIZES: Record<
-    string,
-    { width: number; height: number; depth: number }
-> = {
+const COMPONENT_DEFAULT_SIZES: Record<string, { width: number; height: number; depth: number }> = {
     WC: { width: 400, height: 500, depth: 700 },
     SINK: { width: 500, height: 200, depth: 400 },
     BATHTUB: { width: 700, height: 500, depth: 1_600 },
@@ -226,13 +275,45 @@ export function generateGltf(bathroom: Bathroom): GltfDocument {
     const wallHeight = bathroom.ceilingHeight;
 
     // Bottom wall
-    components.push({ name: "wall-bottom", x: 0, y: 0, width: w, height: wallHeight, depth: t, materialIndex: 0 });
+    components.push({
+        name: "wall-bottom",
+        x: 0,
+        y: 0,
+        width: w,
+        height: wallHeight,
+        depth: t,
+        materialIndex: 0,
+    });
     // Top wall
-    components.push({ name: "wall-top", x: 0, y: d - t, width: w, height: wallHeight, depth: t, materialIndex: 0 });
+    components.push({
+        name: "wall-top",
+        x: 0,
+        y: d - t,
+        width: w,
+        height: wallHeight,
+        depth: t,
+        materialIndex: 0,
+    });
     // Left wall
-    components.push({ name: "wall-left", x: 0, y: 0, width: t, height: wallHeight, depth: d, materialIndex: 0 });
+    components.push({
+        name: "wall-left",
+        x: 0,
+        y: 0,
+        width: t,
+        height: wallHeight,
+        depth: d,
+        materialIndex: 0,
+    });
     // Right wall
-    components.push({ name: "wall-right", x: w - t, y: 0, width: t, height: wallHeight, depth: d, materialIndex: 0 });
+    components.push({
+        name: "wall-right",
+        x: w - t,
+        y: 0,
+        width: t,
+        height: wallHeight,
+        depth: d,
+        materialIndex: 0,
+    });
 
     // ── Fixtures ──────────────────────────────────────────────────────────────
     for (const comp of bathroom.components) {
@@ -271,12 +352,22 @@ export function generateGltf(bathroom: Bathroom): GltfDocument {
         const indexBytes = indices.buffer as ArrayBuffer;
 
         const vertexViewIndex = bufferViews.length;
-        bufferViews.push({ buffer: 0, byteOffset, byteLength: vertexBytes.byteLength, target: 34962 });
+        bufferViews.push({
+            buffer: 0,
+            byteOffset,
+            byteLength: vertexBytes.byteLength,
+            target: 34962,
+        });
         chunks.push({ data: new Uint8Array(vertexBytes), byteOffset });
         byteOffset += vertexBytes.byteLength;
 
         const indexViewIndex = bufferViews.length;
-        bufferViews.push({ buffer: 0, byteOffset, byteLength: indexBytes.byteLength, target: 34963 });
+        bufferViews.push({
+            buffer: 0,
+            byteOffset,
+            byteLength: indexBytes.byteLength,
+            target: 34963,
+        });
         chunks.push({ data: new Uint8Array(indexBytes), byteOffset });
         byteOffset += indexBytes.byteLength;
 

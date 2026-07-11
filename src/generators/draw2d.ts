@@ -137,5 +137,3 @@ export function generateDxf(bathroom: Bathroom): string {
 
     return dxf.toDxfString();
 }
-
-

@@ -42,12 +42,7 @@ export class BbrValidationError extends Error {
 
 // ── Distance helper ───────────────────────────────────────────────────────────
 
-function distanceMm(
-    ax: number,
-    ay: number,
-    bx: number,
-    by: number,
-): number {
+function distanceMm(ax: number, ay: number, bx: number, by: number): number {
     return Math.sqrt((bx - ax) ** 2 + (by - ay) ** 2);
 }
 

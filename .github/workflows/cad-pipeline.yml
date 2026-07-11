@@ -52,7 +52,8 @@ jobs:
         run: npm run build
 
       - name: Generate CAD artifacts
-        run: node --input-type=module <<'EOF'
+        run: |
+          node --input-type=module <<'EOF'
           import { validateBathroom } from './dist/validators/bbr.js';
           import { generateDxf } from './dist/generators/draw2d.js';
           import { generateGltf } from './dist/generators/draw3d.js';
@@ -75,7 +76,7 @@ jobs:
           writeFileSync('artifacts/bathroom.dxf', generateDxf(bathroom));
           writeFileSync('artifacts/bathroom.gltf', JSON.stringify(generateGltf(bathroom), null, 2));
           console.log('Generated: artifacts/bathroom.dxf, artifacts/bathroom.gltf');
-        EOF
+          EOF
 
       - name: Upload CAD artifacts
         uses: actions/upload-artifact@v4

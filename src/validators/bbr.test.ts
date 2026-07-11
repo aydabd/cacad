@@ -32,21 +32,17 @@ describe("validateBathroom — schema validation", () => {
     });
 
     it("throws ZodError when ceilingHeight is negative", () => {
-        expect(() =>
-            validateBathroom({ ...compliantBathroom, ceilingHeight: -100 }),
-        ).toThrow(ZodError);
+        expect(() => validateBathroom({ ...compliantBathroom, ceilingHeight: -100 })).toThrow(
+            ZodError,
+        );
     });
 
     it("throws ZodError when width is zero", () => {
-        expect(() =>
-            validateBathroom({ ...compliantBathroom, width: 0 }),
-        ).toThrow(ZodError);
+        expect(() => validateBathroom({ ...compliantBathroom, width: 0 })).toThrow(ZodError);
     });
 
     it("throws ZodError when components array is empty", () => {
-        expect(() =>
-            validateBathroom({ ...compliantBathroom, components: [] }),
-        ).toThrow(ZodError);
+        expect(() => validateBathroom({ ...compliantBathroom, components: [] })).toThrow(ZodError);
     });
 
     it("throws ZodError for an unknown component type", () => {
@@ -72,9 +68,9 @@ describe("validateBathroom — BBR §3:22 ceiling height", () => {
     });
 
     it("throws BbrValidationError when ceiling height is below 2 100 mm", () => {
-        expect(() =>
-            validateBathroom({ ...compliantBathroom, ceilingHeight: 2_099 }),
-        ).toThrow(BbrValidationError);
+        expect(() => validateBathroom({ ...compliantBathroom, ceilingHeight: 2_099 })).toThrow(
+            BbrValidationError,
+        );
     });
 
     it("includes the BBR §3:22 rule reference in the violation", () => {
@@ -185,15 +181,15 @@ describe("validateBathroom — BBR §3:225 wheelchair turning circle", () => {
     });
 
     it("throws BbrValidationError when width is below 1 300 mm", () => {
-        expect(() =>
-            validateBathroom({ ...compliantBathroom, width: 1_200 }),
-        ).toThrow(BbrValidationError);
+        expect(() => validateBathroom({ ...compliantBathroom, width: 1_200 })).toThrow(
+            BbrValidationError,
+        );
     });
 
     it("throws BbrValidationError when depth is below 1 300 mm", () => {
-        expect(() =>
-            validateBathroom({ ...compliantBathroom, depth: 1_200 }),
-        ).toThrow(BbrValidationError);
+        expect(() => validateBathroom({ ...compliantBathroom, depth: 1_200 })).toThrow(
+            BbrValidationError,
+        );
     });
 
     it("reports both width and depth violations when both are too small", () => {
