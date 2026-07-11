@@ -51,6 +51,9 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
+      - name: Run CLI contract smoke test
+        run: npm run cli -- --input examples/synthetic-bathroom.json --out-dir artifacts/cli-smoke --prefix contract --report artifacts/cli-smoke/report.json
+
       - name: Generate CAD artifacts
         run: |
           node --input-type=module <<'EOS'

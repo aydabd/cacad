@@ -5,6 +5,36 @@ import { describe, expect, it } from "vitest";
 import { runCli } from "./cli.js";
 
 describe("runCli", () => {
+    it("returns HELP for --help", async () => {
+        const { exitCode, result } = await runCli(["--help"]);
+
+        expect(exitCode).toBe(0);
+        expect(result.errors[0]?.code).toBe("HELP");
+        expect(result.errors[0]?.message).toContain("Usage:");
+    });
+
+    it("returns CLI_ARGUMENT_ERROR when --input is missing", async () => {
+        const { exitCode, result } = await runCli(["--out-dir", "artifacts"]);
+
+        expect(exitCode).toBe(2);
+        expect(result.status).toBe("INFORMATION_MISSING");
+        expect(result.errors[0]?.code).toBe("CLI_ARGUMENT_ERROR");
+    });
+
+    it("returns INPUT_JSON_INVALID for malformed JSON input", async () => {
+        const dir = await mkdtemp(join(tmpdir(), "cacad-cli-json-"));
+        const inputPath = join(dir, "input.json");
+        const reportPath = join(dir, "result.json");
+
+        await writeFile(inputPath, "{ not-json", "utf8");
+
+        const { exitCode, result } = await runCli(["--input", inputPath, "--report", reportPath]);
+
+        expect(exitCode).toBe(2);
+        expect(result.status).toBe("INFORMATION_MISSING");
+        expect(result.errors[0]?.code).toBe("INPUT_JSON_INVALID");
+    });
+
     it("returns PASS and writes DXF, glTF, and report files for valid input", async () => {
         const dir = await mkdtemp(join(tmpdir(), "cacad-cli-pass-"));
         const inputPath = join(dir, "input.json");

@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
 import { createHash } from "node:crypto";
+import { realpathSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { ZodError } from "zod";
 import { generateDxf } from "./generators/draw2d.js";
 import { generateGltf } from "./generators/draw3d.js";
@@ -55,6 +57,10 @@ function printHelp(): string {
     ].join("\n");
 }
 
+function isFlagToken(value: string | undefined): boolean {
+    return value === undefined || value.startsWith("--");
+}
+
 export function parseArgs(args: string[]): CliOptions | null {
     if (args.includes("--help") || args.includes("-h")) {
         return null;
@@ -65,7 +71,11 @@ export function parseArgs(args: string[]): CliOptions | null {
         if (index < 0) {
             return undefined;
         }
-        return args[index + 1];
+        const value = args[index + 1];
+        if (isFlagToken(value)) {
+            return undefined;
+        }
+        return value;
     };
 
     const inputPath = getValue("--input");
@@ -98,6 +108,12 @@ function buildBaseResult(): CliResult {
         },
         errors: [],
     };
+}
+
+async function writeReport(reportPath: string, result: CliResult): Promise<void> {
+    const resolved = resolve(reportPath);
+    await mkdir(dirname(resolved), { recursive: true });
+    await writeFile(resolved, JSON.stringify(result, null, 2), "utf8");
 }
 
 export async function runCli(argv: string[]): Promise<{ exitCode: number; result: CliResult }> {
@@ -155,9 +171,7 @@ export async function runCli(argv: string[]): Promise<{ exitCode: number; result
             gltfPath,
         };
 
-        const reportPath = resolve(options.reportPath);
-        await mkdir(dirname(reportPath), { recursive: true });
-        await writeFile(reportPath, JSON.stringify(result, null, 2), "utf8");
+        await writeReport(options.reportPath, result);
 
         return { exitCode: 0, result };
     } catch (error) {
@@ -183,13 +197,11 @@ export async function runCli(argv: string[]): Promise<{ exitCode: number; result
             result.status = "REVIEW_REQUIRED";
             result.errors.push({
                 code: "UNEXPECTED_ERROR",
-                message: (error as Error).message,
+                message: error instanceof Error ? error.message : String(error),
             });
         }
 
-        const reportPath = resolve(options.reportPath);
-        await mkdir(dirname(reportPath), { recursive: true });
-        await writeFile(reportPath, JSON.stringify(result, null, 2), "utf8");
+        await writeReport(options.reportPath, result);
 
         return { exitCode: 2, result };
     }
@@ -209,6 +221,6 @@ async function main(): Promise<void> {
 }
 
 const entryFile = process.argv[1];
-if (entryFile?.endsWith("/cli.js") || entryFile?.endsWith("\\cli.js")) {
+if (entryFile && realpathSync(entryFile) === fileURLToPath(import.meta.url)) {
     void main();
 }
