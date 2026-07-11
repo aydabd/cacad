@@ -11,6 +11,8 @@ import { generateDxf } from "./generators/draw2d.js";
 import { generateGltf } from "./generators/draw3d.js";
 import { BbrValidationError, validateBathroom } from "./validators/bbr.js";
 
+export type { CliError, CliMetadata, CliOutput, CliResult, CliStatus } from "./contracts/cli.js";
+
 export interface CliOptions {
     inputPath: string;
     outDir: string;
