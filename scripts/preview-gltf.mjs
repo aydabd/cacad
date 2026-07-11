@@ -52,7 +52,7 @@ const html = `<!doctype html>
                 height: 100%;
             }
         </style>
-        <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+        <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
     </head>
     <body>
         <div class="banner">Previewing: ${modelFile}</div>
@@ -82,7 +82,13 @@ const server = createServer((req, res) => {
         return;
     }
 
-    const requested = decodeURIComponent(url.startsWith("/") ? url.slice(1) : url);
+    let requested;
+    try {
+        requested = decodeURIComponent(url.startsWith("/") ? url.slice(1) : url);
+    } catch {
+        send(res, 400, "Bad request: invalid URL encoding");
+        return;
+    }
 
     if (requested !== modelFile) {
         send(res, 404, `Not found: ${requested}`);
