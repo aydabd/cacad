@@ -66,6 +66,7 @@ cacad --input <path> [--out-dir <dir>] [--prefix <name>] [--report <path>]
 - `INPUT_SCHEMA_INVALID`
 - `INPUT_FILE_NOT_FOUND`
 - `VALIDATION_RULES_FAILED`
+- `REPORT_WRITE_FAILED`
 - `UNEXPECTED_ERROR`
 
 ## Determinism notes

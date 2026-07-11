@@ -112,8 +112,15 @@ async function writeReport(reportPath: string, result: CliResult): Promise<void>
 async function writeReportBestEffort(reportPath: string, result: CliResult): Promise<void> {
     try {
         await writeReport(reportPath, result);
-    } catch {
+    } catch (error) {
         // Report output is best-effort and must not break CLI result emission.
+        result.errors.push({
+            code: "REPORT_WRITE_FAILED",
+            message:
+                error instanceof Error
+                    ? `Report could not be written to ${resolve(reportPath)}: ${error.message}`
+                    : `Report could not be written to ${resolve(reportPath)}`,
+        });
     }
 }
 
