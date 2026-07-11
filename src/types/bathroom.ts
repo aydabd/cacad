@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Supported electrical component types in a bathroom layout.
+ * Supported bathroom component types in a bathroom layout.
  */
 export const ComponentTypeSchema = z.enum([
     "WC",

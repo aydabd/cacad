@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { type Bathroom, BathroomSchema } from "../types/bathroom.js";
 
 // ── BBR constants (Swedish Building Regulations) ──────────────────────────────
@@ -20,14 +19,12 @@ const BBR_MIN_WHEELCHAIR_TURN_DIAMETER_MM = 1_300;
 
 // ── Structured error types ────────────────────────────────────────────────────
 
-const BbrViolationSchema = z.object({
-    rule: z.string(),
-    message: z.string(),
-    actual: z.union([z.string(), z.number()]).optional(),
-    required: z.union([z.string(), z.number()]).optional(),
-});
-
-export type BbrViolation = z.infer<typeof BbrViolationSchema>;
+export interface BbrViolation {
+    rule: string;
+    message: string;
+    actual?: string | number;
+    required?: string | number;
+}
 
 export class BbrValidationError extends Error {
     readonly violations: BbrViolation[];
@@ -81,12 +78,13 @@ function checkOutletToWaterDistance(bathroom: Bathroom): BbrViolation[] {
         for (const water of waterSources) {
             const distance = distanceMm(outlet.x, outlet.y, water.x, water.y);
             if (distance < BBR_MIN_OUTLET_TO_WATER_DISTANCE_MM) {
+                const reportedDistance = Number(distance.toFixed(1));
                 violations.push({
                     rule: "BBR §3:146",
                     message:
-                        `Outlet "${outlet.id}" is ${Math.round(distance)} mm from water source ` +
+                        `Outlet "${outlet.id}" is ${reportedDistance} mm from water source ` +
                         `"${water.id}" (${water.type}), minimum is ${BBR_MIN_OUTLET_TO_WATER_DISTANCE_MM} mm`,
-                    actual: Math.round(distance),
+                    actual: reportedDistance,
                     required: BBR_MIN_OUTLET_TO_WATER_DISTANCE_MM,
                 });
             }

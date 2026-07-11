@@ -223,6 +223,15 @@ interface BufferChunk {
 
 function toBase64(buffer: ArrayBuffer): string {
     const bytes = new Uint8Array(buffer);
+    const nodeBuffer = (
+        globalThis as {
+            Buffer?: { from: (input: Uint8Array) => { toString: (encoding: string) => string } };
+        }
+    ).Buffer;
+    if (nodeBuffer) {
+        return `data:application/octet-stream;base64,${nodeBuffer.from(bytes).toString("base64")}`;
+    }
+
     let binary = "";
     for (let i = 0; i < bytes.byteLength; i++) {
         binary += String.fromCharCode(bytes[i] ?? 0);

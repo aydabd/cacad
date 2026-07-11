@@ -101,9 +101,11 @@ function drawOutletSafetyZones(dxf: DxfWriter, bathroom: Bathroom): void {
     dxf.setActiveLayer(LAYER_ELECTRICAL);
     for (const component of bathroom.components) {
         if (component.type === "OUTLET") {
-            // dxf-writer uses point3d helper; draw a circle at the outlet centre
-            const cx = component.x + 40;
-            const cy = component.y + 40;
+            const defaults = COMPONENT_DEFAULTS.OUTLET ?? { width: 80, depth: 80 };
+            const outletWidth = component.width ?? defaults.width;
+            const outletDepth = component.depth ?? defaults.depth;
+            const cx = component.x + outletWidth / 2;
+            const cy = component.y + outletDepth / 2;
             dxf.drawCircle(cx, cy, 600);
         }
     }

@@ -18,6 +18,17 @@ const compliantBathroom = {
     ],
 };
 
+function expectBbrValidationError(run: () => unknown): BbrValidationError {
+    try {
+        run();
+    } catch (error) {
+        expect(error).toBeInstanceOf(BbrValidationError);
+        return error as BbrValidationError;
+    }
+
+    throw new Error("Expected validateBathroom to throw BbrValidationError");
+}
+
 // ── Schema validation (Zod) ───────────────────────────────────────────────────
 
 describe("validateBathroom — schema validation", () => {
@@ -74,15 +85,13 @@ describe("validateBathroom — BBR §3:22 ceiling height", () => {
     });
 
     it("includes the BBR §3:22 rule reference in the violation", () => {
-        try {
-            validateBathroom({ ...compliantBathroom, ceilingHeight: 1_800 });
-        } catch (error) {
-            expect(error).toBeInstanceOf(BbrValidationError);
-            const bbrError = error as BbrValidationError;
-            expect(bbrError.violations[0]?.rule).toBe("BBR §3:22");
-            expect(bbrError.violations[0]?.actual).toBe(1_800);
-            expect(bbrError.violations[0]?.required).toBe(2_100);
-        }
+        const bbrError = expectBbrValidationError(() =>
+            validateBathroom({ ...compliantBathroom, ceilingHeight: 1_800 }),
+        );
+
+        expect(bbrError.violations[0]?.rule).toBe("BBR §3:22");
+        expect(bbrError.violations[0]?.actual).toBe(1_800);
+        expect(bbrError.violations[0]?.required).toBe(2_100);
     });
 });
 
@@ -120,16 +129,12 @@ describe("validateBathroom — BBR §3:146 outlet-to-water distance", () => {
                 { id: "outlet-01", type: "OUTLET", x: 400, y: 0 },
             ],
         };
-        try {
-            validateBathroom(bathroom);
-        } catch (error) {
-            expect(error).toBeInstanceOf(BbrValidationError);
-            const bbrError = error as BbrValidationError;
-            const violation = bbrError.violations[0];
-            expect(violation?.rule).toBe("BBR §3:146");
-            expect(violation?.actual).toBe(400);
-            expect(violation?.required).toBe(600);
-        }
+        const bbrError = expectBbrValidationError(() => validateBathroom(bathroom));
+        const violation = bbrError.violations[0];
+
+        expect(violation?.rule).toBe("BBR §3:146");
+        expect(violation?.actual).toBe(400);
+        expect(violation?.required).toBe(600);
     });
 
     it("throws BbrValidationError when outlet is too close to a bathtub", () => {
@@ -193,14 +198,12 @@ describe("validateBathroom — BBR §3:225 wheelchair turning circle", () => {
     });
 
     it("reports both width and depth violations when both are too small", () => {
-        try {
-            validateBathroom({ ...compliantBathroom, width: 1_000, depth: 1_000 });
-        } catch (error) {
-            expect(error).toBeInstanceOf(BbrValidationError);
-            const bbrError = error as BbrValidationError;
-            const rules = bbrError.violations.map((v) => v.rule);
-            expect(rules.filter((r) => r === "BBR §3:225")).toHaveLength(2);
-        }
+        const bbrError = expectBbrValidationError(() =>
+            validateBathroom({ ...compliantBathroom, width: 1_000, depth: 1_000 }),
+        );
+        const rules = bbrError.violations.map((v) => v.rule);
+
+        expect(rules.filter((r) => r === "BBR §3:225")).toHaveLength(2);
     });
 });
 
@@ -218,12 +221,8 @@ describe("validateBathroom — multiple violations", () => {
                 { id: "outlet-01", type: "OUTLET", x: 100, y: 0 },
             ],
         };
-        try {
-            validateBathroom(bathroom);
-        } catch (error) {
-            expect(error).toBeInstanceOf(BbrValidationError);
-            const bbrError = error as BbrValidationError;
-            expect(bbrError.violations.length).toBeGreaterThanOrEqual(3);
-        }
+        const bbrError = expectBbrValidationError(() => validateBathroom(bathroom));
+
+        expect(bbrError.violations.length).toBeGreaterThanOrEqual(3);
     });
 });
