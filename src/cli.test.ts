@@ -105,6 +105,7 @@ describe("runCli", () => {
         expect(exitCode).toBe(0);
         expect(result.status).toBe("PASS");
         expect(result.errors.some((error) => error.code === "REPORT_WRITE_FAILED")).toBe(true);
+        expect(() => CliResultSchema.parse(result)).not.toThrow();
     });
 
     it("returns PASS and writes DXF, glTF, and report files for valid input", async () => {

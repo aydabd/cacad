@@ -29,12 +29,27 @@ const CliPassResultSchema = CliResultBaseSchema.extend({
     output: CliOutputSchema,
 });
 
-const CliNonPassResultSchema = CliResultBaseSchema.extend({
-    status: z.enum(["FAIL", "INFORMATION_MISSING", "REVIEW_REQUIRED"]),
+const CliFailResultSchema = CliResultBaseSchema.extend({
+    status: z.literal("FAIL"),
     output: z.never().optional(),
 });
 
-export const CliResultSchema = z.union([CliPassResultSchema, CliNonPassResultSchema]);
+const CliInformationMissingResultSchema = CliResultBaseSchema.extend({
+    status: z.literal("INFORMATION_MISSING"),
+    output: z.never().optional(),
+});
+
+const CliReviewRequiredResultSchema = CliResultBaseSchema.extend({
+    status: z.literal("REVIEW_REQUIRED"),
+    output: z.never().optional(),
+});
+
+export const CliResultSchema = z.discriminatedUnion("status", [
+    CliPassResultSchema,
+    CliFailResultSchema,
+    CliInformationMissingResultSchema,
+    CliReviewRequiredResultSchema,
+]);
 
 export type CliStatus = z.infer<typeof CliStatusSchema>;
 export type CliError = z.infer<typeof CliErrorSchema>;
