@@ -1,0 +1,86 @@
+---
+# =============================================================================
+# CAD Pipeline
+# Triggered on every push and pull request.
+# 1. Sets up Node.js and installs dependencies.
+# 2. Runs Vitest tests to verify validation rules.
+# 3. Compiles TypeScript.
+# 4. Generates DXF and glTF artifacts from the example bathroom.
+# =============================================================================
+
+name: CAD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-generate:
+    name: validate-and-generate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run validation tests
+        run: npm test -- --reporter=verbose
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Generate CAD artifacts
+        run: |
+          node --input-type=module <<'EOS'
+          import { validateBathroom } from './dist/validators/bbr.js';
+          import { generateDxf } from './dist/generators/draw2d.js';
+          import { generateGltf } from './dist/generators/draw3d.js';
+          import { writeFileSync, mkdirSync } from 'node:fs';
+
+          const bathroom = validateBathroom({
+            id: 'bath-example',
+            name: 'Example Bathroom',
+            width: 2400,
+            depth: 1800,
+            ceilingHeight: 2400,
+            components: [
+              { id: 'wc-01', type: 'WC', x: 300, y: 200 },
+              { id: 'sink-01', type: 'SINK', x: 900, y: 200 },
+              { id: 'outlet-01', type: 'OUTLET', x: 1600, y: 900 },
+            ],
+          });
+
+          mkdirSync('artifacts', { recursive: true });
+          writeFileSync('artifacts/bathroom.dxf', generateDxf(bathroom));
+          writeFileSync('artifacts/bathroom.gltf', JSON.stringify(generateGltf(bathroom), null, 2));
+          console.log('Generated: artifacts/bathroom.dxf, artifacts/bathroom.gltf');
+          EOS
+
+      - name: Upload CAD artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: cad-drawings-${{ github.run_number }}
+          path: artifacts/
+          retention-days: 30
