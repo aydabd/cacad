@@ -61,6 +61,18 @@ function isFlagToken(value: string | undefined): boolean {
     return value === undefined || value.startsWith("--");
 }
 
+function normalizePrefix(prefix: string): string {
+    if (prefix.trim().length === 0) {
+        throw new Error("Missing required option value: --prefix <name>");
+    }
+
+    if (prefix.includes("/") || prefix.includes("\\")) {
+        throw new Error("Invalid --prefix value: path separators are not allowed");
+    }
+
+    return prefix;
+}
+
 export function parseArgs(args: string[]): CliOptions | null {
     if (args.includes("--help") || args.includes("-h")) {
         return null;
@@ -84,7 +96,7 @@ export function parseArgs(args: string[]): CliOptions | null {
     }
 
     const outDir = getValue("--out-dir") ?? "artifacts";
-    const filePrefix = getValue("--prefix") ?? "bathroom";
+    const filePrefix = normalizePrefix(getValue("--prefix") ?? "bathroom");
     const reportPath = getValue("--report") ?? join(outDir, "report.json");
 
     return {
@@ -180,6 +192,16 @@ export async function runCli(argv: string[]): Promise<{ exitCode: number; result
             result.errors.push({
                 code: "VALIDATION_RULES_FAILED",
                 message: error.message,
+            });
+        } else if (
+            error instanceof Error &&
+            "code" in error &&
+            (error.code === "ENOENT" || error.code === "EISDIR")
+        ) {
+            result.status = "INFORMATION_MISSING";
+            result.errors.push({
+                code: "INPUT_FILE_NOT_FOUND",
+                message: `Input file could not be read: ${absoluteInput}`,
             });
         } else if (error instanceof ZodError) {
             result.status = "INFORMATION_MISSING";

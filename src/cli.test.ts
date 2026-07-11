@@ -35,6 +35,41 @@ describe("runCli", () => {
         expect(result.errors[0]?.code).toBe("INPUT_JSON_INVALID");
     });
 
+    it("returns CLI_ARGUMENT_ERROR when --prefix contains path separators", async () => {
+        const dir = await mkdtemp(join(tmpdir(), "cacad-cli-prefix-"));
+        const inputPath = join(dir, "input.json");
+        await writeFile(
+            inputPath,
+            JSON.stringify({
+                id: "bath-01",
+                name: "Main Bathroom",
+                width: 2400,
+                depth: 1800,
+                ceilingHeight: 2400,
+                components: [{ id: "wc-01", type: "WC", x: 300, y: 300 }],
+            }),
+            "utf8",
+        );
+
+        const { exitCode, result } = await runCli(["--input", inputPath, "--prefix", "../pwn"]);
+
+        expect(exitCode).toBe(2);
+        expect(result.status).toBe("INFORMATION_MISSING");
+        expect(result.errors[0]?.code).toBe("CLI_ARGUMENT_ERROR");
+    });
+
+    it("returns INPUT_FILE_NOT_FOUND when the input file is missing", async () => {
+        const dir = await mkdtemp(join(tmpdir(), "cacad-cli-missing-"));
+        const inputPath = join(dir, "missing.json");
+        const reportPath = join(dir, "result.json");
+
+        const { exitCode, result } = await runCli(["--input", inputPath, "--report", reportPath]);
+
+        expect(exitCode).toBe(2);
+        expect(result.status).toBe("INFORMATION_MISSING");
+        expect(result.errors[0]?.code).toBe("INPUT_FILE_NOT_FOUND");
+    });
+
     it("returns PASS and writes DXF, glTF, and report files for valid input", async () => {
         const dir = await mkdtemp(join(tmpdir(), "cacad-cli-pass-"));
         const inputPath = join(dir, "input.json");
