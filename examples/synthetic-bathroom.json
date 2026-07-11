@@ -1,0 +1,12 @@
+{
+  "id": "bath-example",
+  "name": "Synthetic Bathroom",
+  "width": 2400,
+  "depth": 1800,
+  "ceilingHeight": 2400,
+  "components": [
+    { "id": "wc-01", "type": "WC", "x": 300, "y": 200 },
+    { "id": "sink-01", "type": "SINK", "x": 900, "y": 200 },
+    { "id": "outlet-01", "type": "OUTLET", "x": 1600, "y": 900 }
+  ]
+}

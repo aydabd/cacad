@@ -3,10 +3,14 @@
   "version": "0.1.0",
   "description": "Architecture-as-Code CAD pipeline in TypeScript",
   "type": "module",
+  "bin": {
+    "cacad": "dist/cli.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "cli": "node dist/cli.js"
   },
   "dependencies": {
     "dxf-writer": "^1.18.4",
