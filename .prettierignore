@@ -2,3 +2,5 @@
 node_modules/
 CHANGELOG.md
 .github/workflows/codeql.yml
+dist/
+artifacts/

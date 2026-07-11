@@ -16,6 +16,7 @@ Thumbs.db
 /build/
 /dist/
 /out/
+/artifacts/
 /target/
 /.gradle/
 /.next/
