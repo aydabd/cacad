@@ -84,12 +84,12 @@ describe("validateBathroom — BBR §3:22 ceiling height", () => {
         );
     });
 
-    it("includes the BBR §3:22 rule reference in the violation", () => {
+    it("includes the synthetic minimum ceiling-height rule identifier in the violation", () => {
         const bbrError = expectBbrValidationError(() =>
             validateBathroom({ ...compliantBathroom, ceilingHeight: 1_800 }),
         );
 
-        expect(bbrError.violations[0]?.rule).toBe("BBR §3:22");
+        expect(bbrError.violations[0]?.rule).toBe("EXAMPLE_RULE_MIN_CEILING_HEIGHT");
         expect(bbrError.violations[0]?.actual).toBe(1_800);
         expect(bbrError.violations[0]?.required).toBe(2_100);
     });
@@ -132,7 +132,7 @@ describe("validateBathroom — BBR §3:146 outlet-to-water distance", () => {
         const bbrError = expectBbrValidationError(() => validateBathroom(bathroom));
         const violation = bbrError.violations[0];
 
-        expect(violation?.rule).toBe("BBR §3:146");
+        expect(violation?.rule).toBe("EXAMPLE_RULE_OUTLET_TO_WATER_DISTANCE");
         expect(violation?.actual).toBe(400);
         expect(violation?.required).toBe(600);
     });
@@ -217,7 +217,7 @@ describe("validateBathroom — BBR §3:225 wheelchair turning circle", () => {
         );
         const rules = bbrError.violations.map((v) => v.rule);
 
-        expect(rules.filter((r) => r === "BBR §3:225")).toHaveLength(2);
+        expect(rules.filter((r) => r === "EXAMPLE_RULE_MIN_TURN_DIAMETER")).toHaveLength(2);
     });
 });
 

@@ -1,5 +1,6 @@
 import DxfWriter from "dxf-writer";
 import type { Bathroom, BathroomComponent } from "../types/bathroom.js";
+import { getComponentFootprint } from "../types/component-defaults.js";
 
 // ── DXF layer names ───────────────────────────────────────────────────────────
 
@@ -42,16 +43,6 @@ function drawWalls(dxf: DxfWriter, width: number, depth: number): void {
 
 // ── Component drawing ─────────────────────────────────────────────────────────
 
-const COMPONENT_DEFAULTS: Record<string, { width: number; depth: number }> = {
-    WC: { width: 400, depth: 700 },
-    SINK: { width: 500, depth: 400 },
-    BATHTUB: { width: 700, depth: 1_600 },
-    SHOWER: { width: 900, depth: 900 },
-    OUTLET: { width: 80, depth: 80 },
-    TOWEL_RAIL: { width: 600, depth: 100 },
-    MIRROR: { width: 600, depth: 30 },
-};
-
 function componentLayer(type: BathroomComponent["type"]): string {
     switch (type) {
         case "OUTLET":
@@ -67,9 +58,9 @@ function componentLayer(type: BathroomComponent["type"]): string {
 }
 
 function drawComponent(dxf: DxfWriter, component: BathroomComponent): void {
-    const defaults = COMPONENT_DEFAULTS[component.type] ?? { width: 300, depth: 300 };
-    const w = component.width ?? defaults.width;
-    const d = component.depth ?? defaults.depth;
+    const footprint = getComponentFootprint(component.type, component.width, component.depth);
+    const w = footprint.width;
+    const d = footprint.depth;
     const x = component.x;
     const y = component.y;
 
@@ -94,16 +85,16 @@ function drawComponent(dxf: DxfWriter, component: BathroomComponent): void {
 // ── Electrical outlets: safety zone circle ────────────────────────────────────
 
 /**
- * Draws a 600 mm safety radius circle around every electrical outlet to make
- * the BBR §3:146 exclusion zone visible on the plan.
+ * Draws a 600 mm safety radius circle around every electrical outlet for
+ * synthetic example safety-zone visualization.
  */
 function drawOutletSafetyZones(dxf: DxfWriter, bathroom: Bathroom): void {
     dxf.setActiveLayer(LAYER_ELECTRICAL);
     for (const component of bathroom.components) {
         if (component.type === "OUTLET") {
-            const defaults = COMPONENT_DEFAULTS.OUTLET ?? { width: 80, depth: 80 };
-            const outletWidth = component.width ?? defaults.width;
-            const outletDepth = component.depth ?? defaults.depth;
+            const outlet = getComponentFootprint(component.type, component.width, component.depth);
+            const outletWidth = outlet.width;
+            const outletDepth = outlet.depth;
             const cx = component.x + outletWidth / 2;
             const cy = component.y + outletDepth / 2;
             dxf.drawCircle(cx, cy, 600);

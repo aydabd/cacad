@@ -1,4 +1,5 @@
 import type { Bathroom } from "../types/bathroom.js";
+import { getComponentFootprint } from "../types/component-defaults.js";
 
 // ── glTF 2.0 minimal type definitions ────────────────────────────────────────
 
@@ -232,10 +233,13 @@ function toBase64(buffer: ArrayBuffer): string {
         return `data:application/octet-stream;base64,${nodeBuffer.from(bytes).toString("base64")}`;
     }
 
-    let binary = "";
-    for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i] ?? 0);
+    const parts: string[] = [];
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.byteLength; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        parts.push(String.fromCharCode(...chunk));
     }
+    const binary = parts.join("");
     return `data:application/octet-stream;base64,${btoa(binary)}`;
 }
 
@@ -251,14 +255,14 @@ interface ComponentDef {
     materialIndex: number;
 }
 
-const COMPONENT_DEFAULT_SIZES: Record<string, { width: number; height: number; depth: number }> = {
-    WC: { width: 400, height: 500, depth: 700 },
-    SINK: { width: 500, height: 200, depth: 400 },
-    BATHTUB: { width: 700, height: 500, depth: 1_600 },
-    SHOWER: { width: 900, height: 2_200, depth: 900 },
-    OUTLET: { width: 80, height: 30, depth: 80 },
-    TOWEL_RAIL: { width: 600, height: 20, depth: 100 },
-    MIRROR: { width: 600, height: 800, depth: 30 },
+const COMPONENT_DEFAULT_HEIGHT_MM: Record<string, number> = {
+    WC: 500,
+    SINK: 200,
+    BATHTUB: 500,
+    SHOWER: 2_200,
+    OUTLET: 30,
+    TOWEL_RAIL: 20,
+    MIRROR: 800,
 };
 
 const WALL_THICKNESS_MM = 150;
@@ -326,18 +330,15 @@ export function generateGltf(bathroom: Bathroom): GltfDocument {
 
     // ── Fixtures ──────────────────────────────────────────────────────────────
     for (const comp of bathroom.components) {
-        const defaults = COMPONENT_DEFAULT_SIZES[comp.type] ?? {
-            width: 300,
-            height: 400,
-            depth: 300,
-        };
+        const footprint = getComponentFootprint(comp.type, comp.width, comp.depth);
+        const defaultHeight = COMPONENT_DEFAULT_HEIGHT_MM[comp.type] ?? 400;
         components.push({
             name: `${comp.type.toLowerCase()}-${comp.id}`,
             x: comp.x,
             y: comp.y,
-            width: comp.width ?? defaults.width,
-            height: defaults.height,
-            depth: comp.depth ?? defaults.depth,
+            width: footprint.width,
+            height: defaultHeight,
+            depth: footprint.depth,
             materialIndex: MATERIAL_INDEX[comp.type] ?? 3,
         });
     }
