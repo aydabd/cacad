@@ -21,9 +21,9 @@ export type ComponentType = z.infer<typeof ComponentTypeSchema>;
 export const BathroomComponentSchema = z.object({
     id: z.string().min(1),
     type: ComponentTypeSchema,
-    /** X coordinate from the room origin, in millimetres. */
+    /** X coordinate of the component top-left corner from the room origin, in millimetres. */
     x: z.number().finite(),
-    /** Y coordinate from the room origin, in millimetres. */
+    /** Y coordinate of the component top-left corner from the room origin, in millimetres. */
     y: z.number().finite(),
     /** Component width in millimetres (along the X axis). */
     width: z.number().positive().optional(),

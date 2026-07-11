@@ -14,7 +14,7 @@ const compliantBathroom = {
     components: [
         { id: "wc-01", type: "WC", x: 300, y: 300, width: 400, depth: 700 },
         { id: "sink-01", type: "SINK", x: 900, y: 200, width: 500, depth: 400 },
-        { id: "outlet-01", type: "OUTLET", x: 900, y: 900 },
+        { id: "outlet-01", type: "OUTLET", x: 1_600, y: 900 },
     ],
 };
 
@@ -98,35 +98,35 @@ describe("validateBathroom — BBR §3:22 ceiling height", () => {
 // ── BBR §3:146 — Electrical outlet distance from water sources ────────────────
 
 describe("validateBathroom — BBR §3:146 outlet-to-water distance", () => {
-    it("passes when outlet is exactly 600 mm from a sink", () => {
+    it("passes when outlet center is exactly 600 mm from a sink center", () => {
         const bathroom = {
             ...compliantBathroom,
             components: [
-                { id: "sink-01", type: "SINK", x: 0, y: 0 },
-                { id: "outlet-01", type: "OUTLET", x: 600, y: 0 },
+                { id: "sink-01", type: "SINK", x: 0, y: 0, width: 500, depth: 400 },
+                { id: "outlet-01", type: "OUTLET", x: 810, y: 160, width: 80, depth: 80 },
             ],
         };
         const result = validateBathroom(bathroom);
         expect(result.components).toHaveLength(2);
     });
 
-    it("throws BbrValidationError when outlet is less than 600 mm from a sink", () => {
+    it("throws BbrValidationError when outlet center is less than 600 mm from a sink center", () => {
         const bathroom = {
             ...compliantBathroom,
             components: [
-                { id: "sink-01", type: "SINK", x: 0, y: 0 },
-                { id: "outlet-01", type: "OUTLET", x: 500, y: 0 },
+                { id: "sink-01", type: "SINK", x: 0, y: 0, width: 500, depth: 400 },
+                { id: "outlet-01", type: "OUTLET", x: 709, y: 160, width: 80, depth: 80 },
             ],
         };
         expect(() => validateBathroom(bathroom)).toThrow(BbrValidationError);
     });
 
-    it("reports the measured distance and minimum in the violation", () => {
+    it("reports the measured center distance and minimum in the violation", () => {
         const bathroom = {
             ...compliantBathroom,
             components: [
-                { id: "sink-01", type: "SINK", x: 0, y: 0 },
-                { id: "outlet-01", type: "OUTLET", x: 400, y: 0 },
+                { id: "sink-01", type: "SINK", x: 0, y: 0, width: 500, depth: 400 },
+                { id: "outlet-01", type: "OUTLET", x: 610, y: 160, width: 80, depth: 80 },
             ],
         };
         const bbrError = expectBbrValidationError(() => validateBathroom(bathroom));
@@ -137,12 +137,26 @@ describe("validateBathroom — BBR §3:146 outlet-to-water distance", () => {
         expect(violation?.required).toBe(600);
     });
 
+    it("uses effective dimensions when width and depth are omitted", () => {
+        const bathroom = {
+            ...compliantBathroom,
+            components: [
+                { id: "sink-01", type: "SINK", x: 0, y: 0 },
+                { id: "outlet-01", type: "OUTLET", x: 610, y: 160 },
+            ],
+        };
+        const bbrError = expectBbrValidationError(() => validateBathroom(bathroom));
+        const violation = bbrError.violations[0];
+
+        expect(violation?.actual).toBe(400);
+    });
+
     it("throws BbrValidationError when outlet is too close to a bathtub", () => {
         const bathroom = {
             ...compliantBathroom,
             components: [
                 { id: "bath-01", type: "BATHTUB", x: 0, y: 0 },
-                { id: "outlet-01", type: "OUTLET", x: 300, y: 0 },
+                { id: "outlet-01", type: "OUTLET", x: 300, y: 700 },
             ],
         };
         expect(() => validateBathroom(bathroom)).toThrow(BbrValidationError);

@@ -17,6 +17,13 @@ const BBR_MIN_OUTLET_TO_WATER_DISTANCE_MM = 600;
  */
 const BBR_MIN_WHEELCHAIR_TURN_DIAMETER_MM = 1_300;
 
+const COMPONENT_DEFAULT_SIZE_MM: Record<string, { width: number; depth: number }> = {
+    OUTLET: { width: 80, depth: 80 },
+    SINK: { width: 500, depth: 400 },
+    BATHTUB: { width: 700, depth: 1_600 },
+    SHOWER: { width: 900, depth: 900 },
+};
+
 // ── Structured error types ────────────────────────────────────────────────────
 
 export interface BbrViolation {
@@ -41,6 +48,17 @@ export class BbrValidationError extends Error {
 
 function distanceMm(ax: number, ay: number, bx: number, by: number): number {
     return Math.sqrt((bx - ax) ** 2 + (by - ay) ** 2);
+}
+
+function componentCenterMm(component: Bathroom["components"][number]): { x: number; y: number } {
+    const defaults = COMPONENT_DEFAULT_SIZE_MM[component.type] ?? { width: 0, depth: 0 };
+    const effectiveWidth = component.width ?? defaults.width;
+    const effectiveDepth = component.depth ?? defaults.depth;
+
+    return {
+        x: component.x + effectiveWidth / 2,
+        y: component.y + effectiveDepth / 2,
+    };
 }
 
 // ── Individual rule checks ────────────────────────────────────────────────────
@@ -76,7 +94,14 @@ function checkOutletToWaterDistance(bathroom: Bathroom): BbrViolation[] {
 
     for (const outlet of outlets) {
         for (const water of waterSources) {
-            const distance = distanceMm(outlet.x, outlet.y, water.x, water.y);
+            const outletCenter = componentCenterMm(outlet);
+            const waterCenter = componentCenterMm(water);
+            const distance = distanceMm(
+                outletCenter.x,
+                outletCenter.y,
+                waterCenter.x,
+                waterCenter.y,
+            );
             if (distance < BBR_MIN_OUTLET_TO_WATER_DISTANCE_MM) {
                 const reportedDistance = Number(distance.toFixed(1));
                 violations.push({
