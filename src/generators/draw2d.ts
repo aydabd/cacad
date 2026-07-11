@@ -138,4 +138,4 @@ export function generateDxf(bathroom: Bathroom): string {
     return dxf.toDxfString();
 }
 
-// Suppress unused import warning — point3d is re-exported for consumers
+
