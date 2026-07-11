@@ -76,6 +76,21 @@ Key review commands: `full review`, `quick review`, `security review`, `resolve 
 
 Add project-specific skills as the codebase grows.
 
+## CAD and construction-design boundary
+
+Before changing CAD/BIM schemas, geometry generators, viewers, quantities,
+regulatory checks, drawings, or construction-related agent behavior, read:
+
+1. `docs/architecture/PROJECT_BOUNDARY_AND_PR1_PLAN.md`;
+2. `NEXT_SESSION.md`;
+3. the evidence and verification gates of the consuming project.
+
+`cacad` owns reusable, project-neutral software contracts and synthetic
+fixtures. Consuming repositories own project evidence, accepted geometry,
+regulatory applicability, professional approvals, and issued deliverables.
+Never encode an unverified regulatory threshold as compliance logic or describe
+generated output as construction-ready merely because automated checks pass.
+
 ## What to Avoid
 
 - Features added "just in case"
