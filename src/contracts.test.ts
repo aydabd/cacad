@@ -13,19 +13,27 @@ describe("public JSON schemas", () => {
         );
     });
 
-    it("publishes the CLI result schema with the documented statuses", () => {
-        const statusSchema = (
-            CliResultJsonSchema as {
-                properties?: { status?: { enum?: string[] } };
-            }
-        ).properties?.status;
+    it("publishes the CLI result schema with all documented statuses", () => {
+        const raw = CliResultJsonSchema as {
+            anyOf?: Array<{ properties?: { status?: { const?: string; enum?: string[] } } }>;
+            oneOf?: Array<{ properties?: { status?: { const?: string; enum?: string[] } } }>;
+        };
+        const variants = raw.anyOf ?? raw.oneOf ?? [];
 
-        expect(statusSchema?.enum).toEqual([
-            "PASS",
-            "FAIL",
-            "INFORMATION_MISSING",
-            "REVIEW_REQUIRED",
-        ]);
+        const statuses = variants.flatMap((variant) => {
+            const status = variant.properties?.status;
+            if (!status) {
+                return [];
+            }
+            if (status.const) {
+                return [status.const];
+            }
+            return status.enum ?? [];
+        });
+
+        expect(statuses).toEqual(
+            expect.arrayContaining(["PASS", "FAIL", "INFORMATION_MISSING", "REVIEW_REQUIRED"]),
+        );
     });
 
     it("validates a representative CLI result envelope", () => {
@@ -45,5 +53,33 @@ describe("public JSON schemas", () => {
         });
 
         expect(result.status).toBe("PASS");
+    });
+
+    it("rejects PASS without output and non-PASS with output", () => {
+        expect(() =>
+            CliResultSchema.parse({
+                status: "PASS",
+                metadata: {
+                    schemaVersion: "v0.1.0",
+                    generator: "cacad-cli",
+                },
+                errors: [],
+            }),
+        ).toThrow();
+
+        expect(() =>
+            CliResultSchema.parse({
+                status: "FAIL",
+                metadata: {
+                    schemaVersion: "v0.1.0",
+                    generator: "cacad-cli",
+                },
+                output: {
+                    dxfPath: "/tmp/out/demo.dxf",
+                    gltfPath: "/tmp/out/demo.gltf",
+                },
+                errors: [{ code: "VALIDATION_RULES_FAILED", message: "x" }],
+            }),
+        ).toThrow();
     });
 });

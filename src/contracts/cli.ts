@@ -18,13 +18,23 @@ export const CliMetadataSchema = z.object({
     inputSha256: z.string().min(1).optional(),
 });
 
-export const CliResultSchema = z.object({
-    status: CliStatusSchema,
+const CliResultBaseSchema = z.object({
     inputPath: z.string().min(1).optional(),
-    output: CliOutputSchema.optional(),
     metadata: CliMetadataSchema,
     errors: z.array(CliErrorSchema),
 });
+
+const CliPassResultSchema = CliResultBaseSchema.extend({
+    status: z.literal("PASS"),
+    output: CliOutputSchema,
+});
+
+const CliNonPassResultSchema = CliResultBaseSchema.extend({
+    status: z.enum(["FAIL", "INFORMATION_MISSING", "REVIEW_REQUIRED"]),
+    output: z.never().optional(),
+});
+
+export const CliResultSchema = z.union([CliPassResultSchema, CliNonPassResultSchema]);
 
 export type CliStatus = z.infer<typeof CliStatusSchema>;
 export type CliError = z.infer<typeof CliErrorSchema>;
