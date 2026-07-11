@@ -6,37 +6,16 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ZodError } from "zod";
+import type { CliResult } from "./contracts/cli.js";
 import { generateDxf } from "./generators/draw2d.js";
 import { generateGltf } from "./generators/draw3d.js";
 import { BbrValidationError, validateBathroom } from "./validators/bbr.js";
-
-export type CliStatus = "PASS" | "FAIL" | "INFORMATION_MISSING" | "REVIEW_REQUIRED";
 
 export interface CliOptions {
     inputPath: string;
     outDir: string;
     filePrefix: string;
     reportPath: string;
-}
-
-interface CliError {
-    code: string;
-    message: string;
-}
-
-export interface CliResult {
-    status: CliStatus;
-    inputPath?: string;
-    output?: {
-        dxfPath: string;
-        gltfPath: string;
-    };
-    metadata: {
-        schemaVersion: string;
-        generator: string;
-        inputSha256?: string;
-    };
-    errors: CliError[];
 }
 
 const SCHEMA_VERSION = "v0.1.0";

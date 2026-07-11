@@ -7,6 +7,12 @@ machine-readable result envelope.
 
 This contract does not represent legal or regulatory compliance evidence.
 
+The published runtime schema exports are available from:
+
+- `cacad/contracts/bathroom`
+- `cacad/contracts/cli`
+- `cacad/contracts`
+
 ## Command
 
 ```bash

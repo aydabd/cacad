@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { runCli } from "./cli.js";
+import { CliResultSchema } from "./contracts/cli.js";
 
 describe("runCli", () => {
     it("returns HELP for --help", async () => {
@@ -111,6 +112,8 @@ describe("runCli", () => {
         if (!result.output) {
             throw new Error("Expected output paths for PASS status");
         }
+
+        expect(() => CliResultSchema.parse(result)).not.toThrow();
 
         const dxf = await readFile(result.output.dxfPath, "utf8");
         const gltf = await readFile(result.output.gltfPath, "utf8");

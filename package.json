@@ -6,6 +6,24 @@
   "bin": {
     "cacad": "dist/cli.js"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/cli.d.ts",
+      "default": "./dist/cli.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "default": "./dist/contracts/index.js"
+    },
+    "./contracts/bathroom": {
+      "types": "./dist/contracts/bathroom.d.ts",
+      "default": "./dist/contracts/bathroom.js"
+    },
+    "./contracts/cli": {
+      "types": "./dist/contracts/cli.d.ts",
+      "default": "./dist/contracts/cli.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",

@@ -50,6 +50,12 @@ Status model in the JSON report/stdout:
 For full field-level contract details, see
 [docs/usage/cli-contract.md](docs/usage/cli-contract.md).
 
+Published contract exports:
+
+- `cacad/contracts/bathroom`
+- `cacad/contracts/cli`
+- `cacad/contracts`
+
 ## Development commands
 
 ```bash
