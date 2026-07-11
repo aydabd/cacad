@@ -66,7 +66,7 @@ export function parseArgs(args: string[]): CliOptions | null {
         }
         const value = args[index + 1];
         if (isFlagToken(value)) {
-            throw new Error(`Missing value for option: ${flag}`);
+            throw new Error(`Missing required option value: ${flag} <value>`);
         }
         return value;
     };

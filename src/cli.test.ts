@@ -80,6 +80,33 @@ describe("runCli", () => {
         expect(result.errors[0]?.code).toBe("INPUT_FILE_NOT_FOUND");
     });
 
+    it("returns REPORT_WRITE_FAILED when the report path points to a directory", async () => {
+        const dir = await mkdtemp(join(tmpdir(), "cacad-cli-report-dir-"));
+        const inputPath = join(dir, "input.json");
+        const reportPath = dir;
+
+        const input = {
+            id: "bath-01",
+            name: "Main Bathroom",
+            width: 2400,
+            depth: 1800,
+            ceilingHeight: 2400,
+            components: [
+                { id: "wc-01", type: "WC", x: 300, y: 300 },
+                { id: "sink-01", type: "SINK", x: 900, y: 200 },
+                { id: "outlet-01", type: "OUTLET", x: 1600, y: 900 },
+            ],
+        };
+
+        await writeFile(inputPath, JSON.stringify(input, null, 2), "utf8");
+
+        const { exitCode, result } = await runCli(["--input", inputPath, "--report", reportPath]);
+
+        expect(exitCode).toBe(0);
+        expect(result.status).toBe("PASS");
+        expect(result.errors.some((error) => error.code === "REPORT_WRITE_FAILED")).toBe(true);
+    });
+
     it("returns PASS and writes DXF, glTF, and report files for valid input", async () => {
         const dir = await mkdtemp(join(tmpdir(), "cacad-cli-pass-"));
         const inputPath = join(dir, "input.json");

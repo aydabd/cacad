@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BathroomJsonSchema } from "./contracts/bathroom.js";
-import { CliResultJsonSchema, CliResultSchema } from "./contracts/cli.js";
+import { BathroomJsonSchema, CliResultJsonSchema, CliResultSchema } from "./contracts/index.js";
 
 describe("public JSON schemas", () => {
     it("publishes the bathroom schema as an object with room fields", () => {
