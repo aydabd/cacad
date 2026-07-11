@@ -28,7 +28,8 @@
     "build": "tsc",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
-    "cli": "node dist/cli.js"
+    "cli": "node dist/cli.js",
+    "preview:gltf": "node scripts/preview-gltf.mjs"
   },
   "dependencies": {
     "dxf-writer": "^1.18.4",
