@@ -63,26 +63,26 @@ export function parseArgs(args: string[]): CliOptions | null {
         return null;
     }
 
-    const getValue = (flag: string): string | undefined => {
+    const getValue = (flag: string, placeholder: string): string | undefined => {
         const index = args.indexOf(flag);
         if (index < 0) {
             return undefined;
         }
         const value = args[index + 1];
         if (isFlagToken(value)) {
-            throw new Error(`Missing required option value: ${flag} <value>`);
+            throw new Error(`Missing required option value: ${flag} ${placeholder}`);
         }
         return value;
     };
 
-    const inputPath = getValue("--input");
+    const inputPath = getValue("--input", "<path>");
     if (!inputPath) {
         throw new Error("Missing required option: --input <path>");
     }
 
-    const outDir = getValue("--out-dir") ?? "artifacts";
-    const filePrefix = normalizePrefix(getValue("--prefix") ?? "bathroom");
-    const reportPath = getValue("--report") ?? join(outDir, "report.json");
+    const outDir = getValue("--out-dir", "<dir>") ?? "artifacts";
+    const filePrefix = normalizePrefix(getValue("--prefix", "<name>") ?? "bathroom");
+    const reportPath = getValue("--report", "<path>") ?? join(outDir, "report.json");
 
     return {
         inputPath,
@@ -219,7 +219,7 @@ export async function runCli(argv: string[]): Promise<{ exitCode: number; result
         return { exitCode: 0, result };
     } catch (error) {
         const errors: CliResult["errors"] = [];
-        let status: CliNonPassStatus = "REVIEW_REQUIRED";
+        let status: CliNonPassStatus;
 
         if (error instanceof BbrValidationError) {
             status = "FAIL";

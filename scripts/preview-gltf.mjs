@@ -2,7 +2,7 @@
 
 import { createServer } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
-import { basename, dirname, extname, resolve } from "node:path";
+import { basename, extname, resolve } from "node:path";
 import { platform } from "node:os";
 import { spawn } from "node:child_process";
 
@@ -19,46 +19,45 @@ if (extname(modelPath).toLowerCase() !== ".gltf") {
     process.exit(2);
 }
 
-const modelDir = dirname(modelPath);
 const modelFile = basename(modelPath);
 const port = Number(process.env.PREVIEW_PORT ?? "4173");
 
 const html = `<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>cacad glTF preview</title>
-    <style>
-      html, body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        background: #111;
-        color: #eee;
-        font-family: sans-serif;
-      }
-      .banner {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 10;
-        padding: 8px 12px;
-        background: rgba(0, 0, 0, 0.7);
-        font-size: 14px;
-      }
-      model-viewer {
-        width: 100%;
-        height: 100%;
-      }
-    </style>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-  </head>
-  <body>
-    <div class="banner">Previewing: ${modelFile}</div>
-    <model-viewer src="/${encodeURIComponent(modelFile)}" camera-controls auto-rotate exposure="1"></model-viewer>
-  </body>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>cacad glTF preview</title>
+        <style>
+            html, body {
+                margin: 0;
+                width: 100%;
+                height: 100%;
+                background: #111;
+                color: #eee;
+                font-family: sans-serif;
+            }
+            .banner {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 10;
+                padding: 8px 12px;
+                background: rgba(0, 0, 0, 0.7);
+                font-size: 14px;
+            }
+            model-viewer {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+        <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    </head>
+    <body>
+        <div class="banner">Previewing: ${modelFile}</div>
+        <model-viewer src="/${encodeURIComponent(modelFile)}" camera-controls auto-rotate exposure="1"></model-viewer>
+    </body>
 </html>`;
 
 const mime = {
