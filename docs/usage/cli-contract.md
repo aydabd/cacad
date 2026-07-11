@@ -64,6 +64,7 @@ cacad --input <path> [--out-dir <dir>] [--prefix <name>] [--report <path>]
 - `CLI_ARGUMENT_ERROR`
 - `INPUT_JSON_INVALID`
 - `INPUT_SCHEMA_INVALID`
+- `INPUT_FILE_NOT_FOUND`
 - `VALIDATION_RULES_FAILED`
 - `UNEXPECTED_ERROR`
 

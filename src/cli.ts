@@ -64,7 +64,7 @@ export function parseArgs(args: string[]): CliOptions | null {
         }
         const value = args[index + 1];
         if (isFlagToken(value)) {
-            return undefined;
+            throw new Error(`Missing value for option: ${flag}`);
         }
         return value;
     };
@@ -105,6 +105,14 @@ async function writeReport(reportPath: string, result: CliResult): Promise<void>
     const resolved = resolve(reportPath);
     await mkdir(dirname(resolved), { recursive: true });
     await writeFile(resolved, JSON.stringify(result, null, 2), "utf8");
+}
+
+async function writeReportBestEffort(reportPath: string, result: CliResult): Promise<void> {
+    try {
+        await writeReport(reportPath, result);
+    } catch {
+        // Report output is best-effort and must not break CLI result emission.
+    }
 }
 
 export async function runCli(argv: string[]): Promise<{ exitCode: number; result: CliResult }> {
@@ -162,7 +170,7 @@ export async function runCli(argv: string[]): Promise<{ exitCode: number; result
             gltfPath,
         };
 
-        await writeReport(options.reportPath, result);
+        await writeReportBestEffort(options.reportPath, result);
 
         return { exitCode: 0, result };
     } catch (error) {
@@ -202,7 +210,7 @@ export async function runCli(argv: string[]): Promise<{ exitCode: number; result
             });
         }
 
-        await writeReport(options.reportPath, result);
+        await writeReportBestEffort(options.reportPath, result);
 
         return { exitCode: 2, result };
     }

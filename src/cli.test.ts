@@ -22,6 +22,15 @@ describe("runCli", () => {
         expect(result.errors[0]?.code).toBe("CLI_ARGUMENT_ERROR");
     });
 
+    it("returns CLI_ARGUMENT_ERROR when an option is provided without a value", async () => {
+        const { exitCode, result } = await runCli(["--input", "x.json", "--out-dir"]);
+
+        expect(exitCode).toBe(2);
+        expect(result.status).toBe("INFORMATION_MISSING");
+        expect(result.errors[0]?.code).toBe("CLI_ARGUMENT_ERROR");
+        expect(result.errors[0]?.message).toContain("--out-dir");
+    });
+
     it("returns INPUT_JSON_INVALID for malformed JSON input", async () => {
         const dir = await mkdtemp(join(tmpdir(), "cacad-cli-json-"));
         const inputPath = join(dir, "input.json");
