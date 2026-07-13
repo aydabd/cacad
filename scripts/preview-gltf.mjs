@@ -20,7 +20,15 @@ if (extname(modelPath).toLowerCase() !== ".gltf") {
 }
 
 const modelFile = basename(modelPath);
-const port = Number(process.env.PREVIEW_PORT ?? "4173");
+
+const rawPort = Number(process.env.PREVIEW_PORT ?? "4173");
+if (!Number.isInteger(rawPort) || rawPort < 1 || rawPort > 65535) {
+    console.error(
+        `Invalid PREVIEW_PORT value: "${process.env.PREVIEW_PORT ?? ""}". Must be an integer between 1 and 65535.`,
+    );
+    process.exit(2);
+}
+const port = rawPort;
 
 const html = `<!doctype html>
 <html lang="en">
@@ -55,7 +63,7 @@ const html = `<!doctype html>
         <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
     </head>
     <body>
-        <div class="banner">Previewing: ${modelFile}</div>
+        <div class="banner">Previewing: ${modelFile.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
         <model-viewer src="/${encodeURIComponent(modelFile)}" camera-controls auto-rotate exposure="1"></model-viewer>
     </body>
 </html>`;
@@ -107,7 +115,7 @@ const server = createServer((req, res) => {
     }
 });
 
-server.listen(port, () => {
+server.listen(port, "127.0.0.1", () => {
     const url = `http://127.0.0.1:${port}`;
     console.log(`glTF preview server running at ${url}`);
     console.log(`Serving model: ${modelPath}`);
