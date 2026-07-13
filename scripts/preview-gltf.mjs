@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
-import { createServer } from "node:http";
+import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { createServer } from "node:http";
+import { platform } from "node:os";
 import { basename, dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -9,8 +11,6 @@ const VIEWER_PATH = resolve(
     dirname(fileURLToPath(import.meta.url)),
     "../node_modules/@google/model-viewer/dist/model-viewer.min.js",
 );
-import { platform } from "node:os";
-import { spawn } from "node:child_process";
 
 const requestedModelPath = process.argv[2] ?? "artifacts/demo.gltf";
 const modelPath = resolve(process.cwd(), requestedModelPath);
