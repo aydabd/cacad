@@ -2,7 +2,7 @@
 
 import { createServer } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
-import { basename, dirname, extname, join, resolve } from "node:path";
+import { basename, dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const VIEWER_PATH = resolve(
