@@ -95,6 +95,9 @@ Workflow file:
 
 ## Project boundaries
 
+Product vision and phase roadmap:
+[docs/architecture/PRODUCT_VISION_AND_ROADMAP.md](docs/architecture/PRODUCT_VISION_AND_ROADMAP.md).
+
 Architecture and ownership boundary:
 [docs/architecture/PROJECT_BOUNDARY_AND_PR1_PLAN.md](docs/architecture/PROJECT_BOUNDARY_AND_PR1_PLAN.md).
 

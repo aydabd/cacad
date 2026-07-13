@@ -2,7 +2,7 @@
 
 | Document status | Revision | Date       |
 | --------------- | -------- | ---------- |
-| Proposed plan   | P01      | 2026-07-11 |
+| Proposed plan   | P02      | 2026-07-13 |
 
 ## Purpose
 
@@ -13,6 +13,13 @@ project.
 
 This document plans the work. It does not approve PR 1, establish regulatory
 compliance, or make generated geometry construction-ready.
+
+For the broader product direction, phases, open source tool policy,
+construction-project agent model and RunSpec decision path, see
+[PRODUCT_VISION_AND_ROADMAP.md](PRODUCT_VISION_AND_ROADMAP.md).
+That roadmap is also the source of truth for modular regulatory packs,
+localization packs, CAD/BIM language and symbol rules, and follow-up
+synchronization between phases.
 
 ## Current verdict
 
@@ -28,6 +35,161 @@ The regulatory thresholds and clause claims in PR 1 are not accepted project
 evidence. Until verified against current authoritative sources, applicability,
 exceptions, units, measurement methods, and named professional review, they
 must be removed or converted into explicitly synthetic example rules.
+
+## July 2026 foundation directive
+
+Do not add new production features until the foundation below is accepted. The
+near-term work is to make `cacad` cleanly extensible, not to claim real design
+coverage for architecture, structure, piping, electrical, ventilation,
+inspection or permit submission.
+
+The repository may provide code and contracts for:
+
+- project-neutral geometry, evidence, rule, protocol and finding schemas;
+- deterministic 2D/3D/IFC/DXF/glTF adapter interfaces and synthetic fixtures;
+- local viewers and reports that expose layers, object IDs, source status,
+  provenance, quantities and unresolved findings;
+- machine-readable rule packs that can only evaluate when evidence metadata is
+  accepted for the jurisdiction, discipline, version and intended use;
+- agent instructions that force source discovery, question capture and
+  professional-review handoff instead of guessing.
+
+The repository must not provide or imply:
+
+- complete design authority for real construction;
+- final engineering calculations or signed discipline responsibility;
+- automatic permit readiness;
+- latest-law compliance without retrieved authority evidence and review;
+- acceptance of privately sourced project dimensions, loads, products or site
+  constraints.
+
+## Isolation check
+
+`cacad` should remain isolated as a reusable package/CLI. It must not import
+from, copy data from, or read files by relative path from any consuming project.
+The only allowed integration is a released semver package, CLI binary, or typed
+artifact contract that a consumer pins explicitly.
+
+Current repository inspection shows no implementation dependency on
+`building-engineering-projects`; cross-repository references are limited to
+planning documents. That is acceptable for coordination, but tests and runtime
+code must continue to use only synthetic fixtures.
+
+## Realistic model and geometry foundation
+
+TypeScript can own deterministic contracts, validation, metadata and many 2D/3D
+adapters. Blender or other open source tools may be evaluated later for visual
+inspection, conversion, clash review or rendering, but only through a controlled
+adapter boundary. A rendered model is not evidence of geometric correctness.
+
+Before any real-world geometry support, the foundation must define:
+
+- coordinate systems, units, tolerances, origins, levels, rotations and handedness;
+- object identity, layers, systems, spaces, storeys, assemblies and discipline
+  ownership;
+- provenance for every dimension, product, material, load, flow, cable,
+  opening, clearance and derived quantity;
+- independent conformance checks for DXF, SVG, glTF/GLB and any IFC output;
+- round-trip drift reports, bounding boxes, collision/clash checks and quantity
+  derivation traces;
+- explicit status values such as `SYNTHETIC`, `PROPOSED`, `DERIVED`,
+  `USER_CONFIRMED`, `VERIFIED`, `REVIEW_REQUIRED` and
+  `REQUIRES_PROFESSIONAL_VERIFICATION`.
+
+Any Blender, Three.js, IFC, OpenCascade, Speckle or other visualization path
+must be documented with license, offline/privacy behavior, deterministic input
+digest, output digest and validator evidence before it becomes part of the
+supported contract.
+
+## Regulatory and compliance foundation
+
+`cacad` may host a generic compliance engine, but real rules must live as
+evidence-backed rule packs. A rule pack is only valid for the jurisdiction,
+discipline, source version, retrieved date, applicability statement and
+reviewer acceptance recorded with it. Unsupported rules must return
+`INFORMATION_MISSING` or `REVIEW_REQUIRED`, never `PASS` or `FAIL`.
+
+The foundation needs an authority-source registry before any real compliance
+checks are implemented. For Swedish projects, candidate source categories
+include:
+
+- Boverket rules, handbooks and transition guidance for building regulations;
+- municipal detailed development plans, permit requirements and local
+  decisions;
+- Elsakerhetsverket regulations and guidance for electrical safety;
+- SEK Svensk Elstandard standards references where applicable and licensed;
+- Sakervatten and other applicable industry rules for water installations;
+- Arbetsmiljoverket rules for work environment and construction site safety;
+- MSB, Naturvardsverket, Lantmateriet, SGU, VA utility providers, network
+  owners, fire authority and other authorities when the discipline requires it.
+
+The registry must store the canonical URL or document identifier, publisher,
+jurisdiction, discipline, version/date, retrieval timestamp, checksum where
+possible, access/licensing limits, applicability notes, supersession status and
+reviewer decision. Agent output must cite registry entries and record open
+questions when current sources cannot be retrieved or interpreted.
+
+## Agent and skill foundation
+
+Future specialist agents should be separated by responsibility and forbidden
+from issuing construction-ready conclusions alone. Planned agent families:
+
+- source-discovery agent: finds current authority, municipal, supplier and
+  standard references and records licensing/access limits;
+- applicability agent: determines whether a source applies to the project,
+  discipline, building type, date, scope and jurisdiction;
+- geometry agent: checks units, layers, levels, object IDs, collisions,
+  clearances and quantity traces;
+- discipline agents: architecture, structure, electrical, plumbing, ventilation,
+  fire, accessibility, geotechnical and site/utilities, each constrained to
+  draft checks and question capture;
+- protocol agent: creates inspection and review protocol templates with status,
+  revision, evidence links, responsible role and unresolved items;
+- assurance coordinator: merges findings, blocks unsupported compliance
+  outcomes and prepares material for named professional review.
+
+Each agent must have a canonical skill with allowed inputs, denied claims,
+required evidence states, output schema, validation commands and escalation
+rules. Agents must search for current sources, record uncertainty and add
+questions instead of filling gaps.
+
+## Inspection protocol foundation
+
+`cacad` can define protocol schemas and generate draft protocol packages, but
+the consuming project owns the actual inspection record and signatures.
+Protocol levels should be modeled separately, for example:
+
+- design-input completeness protocol;
+- authority-source and applicability protocol;
+- discipline design-review protocol;
+- geometry/model conformance protocol;
+- clash and coordination protocol;
+- permit-submission readiness protocol;
+- construction-stage inspection protocol;
+- final inspection and handover protocol.
+
+Every protocol item must include discipline, requirement source, evidence,
+inspection method, status, responsible role, reviewer, date, revision, open
+questions and whether professional verification is still required.
+
+## RunSpec evaluation path
+
+`aydabd/runspec` is a strong candidate for replacing markdown-only planning
+with typed executable specifications and verification gates. It should be
+evaluated in a separate architecture spike before adoption.
+
+The evaluation must compare RunSpec with Spec Kit/OpenSpec-style workflows for:
+
+- typed requirements, scenarios, quality gates and agent task boundaries;
+- generated task JSON with allowed and denied files;
+- evidence generation under deterministic directories;
+- compatibility with `cacad`'s provider-aware Makefile and npm scripts;
+- ability to model regulatory-source registries, geometry contracts and
+  professional-review gates without embedding unverified legal thresholds.
+
+RunSpec adoption must not create a monorepo dependency on `aydabd/runspec` by
+relative path. If accepted, consume a released CLI/package or vendor only a
+reviewed generated artifact contract with an ADR.
 
 ## Repository ownership contract
 
@@ -174,6 +336,43 @@ pool project's existing admission work package.
 **Exit:** no copied code/data, reproducible contract tests, and explicit
 construction-assurance verdict.
 
+### C09 — Foundation capability map
+
+Create a non-implementation capability map for geometry, disciplines,
+regulatory sources, protocols, agents and evidence states. Confirm what belongs
+in `cacad`, what belongs in consuming projects, and what requires professional
+or licensed-source ownership.
+
+**Exit:** accepted foundation map, no new runtime feature code, and explicit
+non-goals for construction-ready output.
+
+### C10 — Authority-source registry design
+
+Design the generic source registry and rule-pack evidence contract. Include
+Swedish authority categories as examples, but do not encode thresholds or
+clause interpretations until sources are retrieved, licensed if needed, and
+reviewed.
+
+**Exit:** schema/ADR plan for source records, retrieval evidence,
+applicability, supersession and unsupported-rule behavior.
+
+### C11 — Agent and protocol architecture
+
+Design the separated specialist agents, canonical skills and protocol schemas
+for source discovery, applicability, geometry, discipline review and assurance
+coordination.
+
+**Exit:** agent boundaries prevent guessing, unsupported compliance outcomes
+and construction-ready claims.
+
+### C12 — RunSpec architecture spike
+
+Evaluate `aydabd/runspec` as the executable specification and plan engine for
+`cacad`, compared with Spec Kit/OpenSpec-style markdown flows.
+
+**Exit:** ADR recommending adopt, defer or reject; no relative-path dependency
+and no conflict with existing provider-aware commands.
+
 ## Completion criteria
 
 This coordination plan is complete when:
@@ -185,5 +384,8 @@ This coordination plan is complete when:
 5. agent instructions resolve to one assurance policy;
 6. the pool project pins a reviewed release without surrendering its evidence
    or professional-verification gates.
+7. future compliance, protocol and agent work starts from source registries,
+   typed evidence and professional-review boundaries rather than hardcoded
+   assumptions.
 
 No output covered by this plan is construction-ready.
