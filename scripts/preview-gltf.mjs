@@ -132,6 +132,15 @@ const server = createServer((req, res) => {
     }
 });
 
+server.on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+        console.error(`Port ${port} is already in use. Set a different port with PREVIEW_PORT.`);
+    } else {
+        console.error(`Server error: ${error.message}`);
+    }
+    process.exit(1);
+});
+
 server.listen(port, "127.0.0.1", () => {
     const url = `http://127.0.0.1:${port}`;
     console.log(`glTF preview server running at ${url}`);
