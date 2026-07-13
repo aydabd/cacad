@@ -7,6 +7,12 @@ machine-readable result envelope.
 
 This contract does not represent legal or regulatory compliance evidence.
 
+The published runtime schema exports are available from:
+
+- `cacad/contracts/bathroom`
+- `cacad/contracts/cli`
+- `cacad/contracts`
+
 ## Command
 
 ```bash
@@ -58,7 +64,9 @@ cacad --input <path> [--out-dir <dir>] [--prefix <name>] [--report <path>]
 - `CLI_ARGUMENT_ERROR`
 - `INPUT_JSON_INVALID`
 - `INPUT_SCHEMA_INVALID`
+- `INPUT_FILE_NOT_FOUND`
 - `VALIDATION_RULES_FAILED`
+- `REPORT_WRITE_FAILED`
 - `UNEXPECTED_ERROR`
 
 ## Determinism notes

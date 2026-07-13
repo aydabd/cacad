@@ -32,6 +32,21 @@ Outputs:
 - `artifacts/demo.gltf`
 - `artifacts/report.json` (unless overridden with `--report`)
 
+## Preview generated glTF
+
+After generating artifacts, run:
+
+```bash
+npm run preview:gltf -- artifacts/demo.gltf
+```
+
+This starts a local preview server and opens a browser window on macOS. You can
+also preview any other generated model path, for example:
+
+```bash
+npm run preview:gltf -- artifacts/demo/user-view.gltf
+```
+
 ## CLI contract
 
 Command:
@@ -49,6 +64,12 @@ Status model in the JSON report/stdout:
 
 For full field-level contract details, see
 [docs/usage/cli-contract.md](docs/usage/cli-contract.md).
+
+Published contract exports:
+
+- `cacad/contracts/bathroom`
+- `cacad/contracts/cli`
+- `cacad/contracts`
 
 ## Development commands
 

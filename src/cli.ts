@@ -6,11 +6,12 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ZodError } from "zod";
+import type { CliResult } from "./contracts/cli.js";
 import { generateDxf } from "./generators/draw2d.js";
 import { generateGltf } from "./generators/draw3d.js";
 import { BbrValidationError, validateBathroom } from "./validators/bbr.js";
 
-export type CliStatus = "PASS" | "FAIL" | "INFORMATION_MISSING" | "REVIEW_REQUIRED";
+export type { CliError, CliMetadata, CliOutput, CliResult, CliStatus } from "./contracts/cli.js";
 
 export interface CliOptions {
     inputPath: string;
@@ -19,25 +20,9 @@ export interface CliOptions {
     reportPath: string;
 }
 
-interface CliError {
-    code: string;
-    message: string;
-}
-
-export interface CliResult {
-    status: CliStatus;
-    inputPath?: string;
-    output?: {
-        dxfPath: string;
-        gltfPath: string;
-    };
-    metadata: {
-        schemaVersion: string;
-        generator: string;
-        inputSha256?: string;
-    };
-    errors: CliError[];
-}
+type CliPassResult = Extract<CliResult, { status: "PASS" }>;
+type CliNonPassResult = Exclude<CliResult, { status: "PASS" }>;
+type CliNonPassStatus = CliNonPassResult["status"];
 
 const SCHEMA_VERSION = "v0.1.0";
 
@@ -78,26 +63,26 @@ export function parseArgs(args: string[]): CliOptions | null {
         return null;
     }
 
-    const getValue = (flag: string): string | undefined => {
+    const getValue = (flag: string, placeholder: string): string | undefined => {
         const index = args.indexOf(flag);
         if (index < 0) {
             return undefined;
         }
         const value = args[index + 1];
         if (isFlagToken(value)) {
-            return undefined;
+            throw new Error(`Missing required option value: ${flag} ${placeholder}`);
         }
         return value;
     };
 
-    const inputPath = getValue("--input");
+    const inputPath = getValue("--input", "<path>");
     if (!inputPath) {
         throw new Error("Missing required option: --input <path>");
     }
 
-    const outDir = getValue("--out-dir") ?? "artifacts";
-    const filePrefix = normalizePrefix(getValue("--prefix") ?? "bathroom");
-    const reportPath = getValue("--report") ?? join(outDir, "report.json");
+    const outDir = getValue("--out-dir", "<dir>") ?? "artifacts";
+    const filePrefix = normalizePrefix(getValue("--prefix", "<name>") ?? "bathroom");
+    const reportPath = getValue("--report", "<path>") ?? join(outDir, "report.json");
 
     return {
         inputPath,
@@ -111,14 +96,49 @@ function sha256(content: string): string {
     return createHash("sha256").update(content).digest("hex");
 }
 
-function buildBaseResult(): CliResult {
-    return {
-        status: "REVIEW_REQUIRED",
+function buildResultBase(inputPath?: string): {
+    inputPath?: string;
+    metadata: CliResult["metadata"];
+    errors: CliResult["errors"];
+} {
+    const base = {
         metadata: {
             schemaVersion: SCHEMA_VERSION,
             generator: "cacad-cli",
         },
         errors: [],
+    };
+
+    if (inputPath === undefined) {
+        return base;
+    }
+
+    return {
+        ...base,
+        inputPath,
+    };
+}
+
+function buildPassResult(
+    base: ReturnType<typeof buildResultBase>,
+    output: CliPassResult["output"],
+): CliPassResult {
+    return {
+        ...base,
+        status: "PASS",
+        output,
+    };
+}
+
+function buildNonPassResult(
+    base: ReturnType<typeof buildResultBase>,
+    status: CliNonPassStatus,
+    errors: CliResult["errors"],
+): CliNonPassResult {
+    return {
+        ...base,
+        status,
+        errors,
     };
 }
 
@@ -128,40 +148,52 @@ async function writeReport(reportPath: string, result: CliResult): Promise<void>
     await writeFile(resolved, JSON.stringify(result, null, 2), "utf8");
 }
 
+async function writeReportBestEffort(reportPath: string, result: CliResult): Promise<void> {
+    try {
+        await writeReport(reportPath, result);
+    } catch (error) {
+        // Report output is best-effort and must not break CLI result emission.
+        result.errors.push({
+            code: "REPORT_WRITE_FAILED",
+            message:
+                error instanceof Error
+                    ? `Report could not be written to ${resolve(reportPath)}: ${error.message}`
+                    : `Report could not be written to ${resolve(reportPath)}`,
+        });
+    }
+}
+
 export async function runCli(argv: string[]): Promise<{ exitCode: number; result: CliResult }> {
     let options: CliOptions;
     try {
         const parsed = parseArgs(argv);
         if (!parsed) {
             const help = printHelp();
+            const base = buildResultBase();
             return {
                 exitCode: 0,
-                result: {
-                    ...buildBaseResult(),
-                    status: "REVIEW_REQUIRED",
-                    errors: [{ code: "HELP", message: help }],
-                },
+                result: buildNonPassResult(base, "REVIEW_REQUIRED", [
+                    { code: "HELP", message: help },
+                ]),
             };
         }
         options = parsed;
     } catch (error) {
+        const base = buildResultBase();
         return {
             exitCode: 2,
-            result: {
-                ...buildBaseResult(),
-                status: "INFORMATION_MISSING",
-                errors: [{ code: "CLI_ARGUMENT_ERROR", message: (error as Error).message }],
-            },
+            result: buildNonPassResult(base, "INFORMATION_MISSING", [
+                { code: "CLI_ARGUMENT_ERROR", message: (error as Error).message },
+            ]),
         };
     }
 
-    const result = buildBaseResult();
     const absoluteInput = resolve(options.inputPath);
-    result.inputPath = absoluteInput;
+    const base = buildResultBase(absoluteInput);
 
     try {
         const rawInput = await readFile(absoluteInput, "utf8");
-        result.metadata.inputSha256 = sha256(rawInput);
+        base.metadata.inputSha256 = sha256(rawInput);
 
         const input = JSON.parse(rawInput) as unknown;
         const bathroom = validateBathroom(input);
@@ -177,19 +209,21 @@ export async function runCli(argv: string[]): Promise<{ exitCode: number; result
         await writeFile(dxfPath, dxf, "utf8");
         await writeFile(gltfPath, gltf, "utf8");
 
-        result.status = "PASS";
-        result.output = {
+        const result = buildPassResult(base, {
             dxfPath,
             gltfPath,
-        };
+        });
 
-        await writeReport(options.reportPath, result);
+        await writeReportBestEffort(options.reportPath, result);
 
         return { exitCode: 0, result };
     } catch (error) {
+        const errors: CliResult["errors"] = [];
+        let status: CliNonPassStatus;
+
         if (error instanceof BbrValidationError) {
-            result.status = "FAIL";
-            result.errors.push({
+            status = "FAIL";
+            errors.push({
                 code: "VALIDATION_RULES_FAILED",
                 message: error.message,
             });
@@ -198,32 +232,34 @@ export async function runCli(argv: string[]): Promise<{ exitCode: number; result
             "code" in error &&
             (error.code === "ENOENT" || error.code === "EISDIR")
         ) {
-            result.status = "INFORMATION_MISSING";
-            result.errors.push({
+            status = "INFORMATION_MISSING";
+            errors.push({
                 code: "INPUT_FILE_NOT_FOUND",
                 message: `Input file could not be read: ${absoluteInput}`,
             });
         } else if (error instanceof ZodError) {
-            result.status = "INFORMATION_MISSING";
-            result.errors.push({
+            status = "INFORMATION_MISSING";
+            errors.push({
                 code: "INPUT_SCHEMA_INVALID",
                 message: error.message,
             });
         } else if (error instanceof SyntaxError) {
-            result.status = "INFORMATION_MISSING";
-            result.errors.push({
+            status = "INFORMATION_MISSING";
+            errors.push({
                 code: "INPUT_JSON_INVALID",
                 message: error.message,
             });
         } else {
-            result.status = "REVIEW_REQUIRED";
-            result.errors.push({
+            status = "REVIEW_REQUIRED";
+            errors.push({
                 code: "UNEXPECTED_ERROR",
                 message: error instanceof Error ? error.message : String(error),
             });
         }
 
-        await writeReport(options.reportPath, result);
+        const result = buildNonPassResult(base, status, errors);
+
+        await writeReportBestEffort(options.reportPath, result);
 
         return { exitCode: 2, result };
     }
