@@ -2,7 +2,13 @@
 
 import { createServer } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
-import { basename, extname, resolve } from "node:path";
+import { basename, dirname, extname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const VIEWER_PATH = resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "../node_modules/@google/model-viewer/dist/model-viewer.min.js",
+);
 import { platform } from "node:os";
 import { spawn } from "node:child_process";
 
@@ -60,7 +66,7 @@ const html = `<!doctype html>
                 height: 100%;
             }
         </style>
-        <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+        <script type="module" src="/vendor/model-viewer.min.js"></script>
     </head>
     <body>
         <div class="banner">Previewing: ${modelFile.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
@@ -87,6 +93,17 @@ const server = createServer((req, res) => {
 
     if (url === "/" || url === "/index.html") {
         send(res, 200, html, mime[".html"]);
+        return;
+    }
+
+    if (url === "/vendor/model-viewer.min.js") {
+        try {
+            const data = readFileSync(VIEWER_PATH);
+            res.writeHead(200, { "content-type": "text/javascript; charset=utf-8" });
+            res.end(data);
+        } catch (error) {
+            send(res, 500, `Unable to read vendor script: ${String(error)}`);
+        }
         return;
     }
 
